@@ -97,7 +97,7 @@ const TUBE_NETWORK_DATABASE = [
 ];
 
 
-let currentPersonaMarker = null; 
+let currentMarker = null;
 
 map.on('load', () => {
     
@@ -139,27 +139,29 @@ map.on('load', () => {
     
     map.on('click', 'stations-dots-layer', (e) => {
         const properties = e.features[0].properties;
-        const coordinates = e.features[0].geometry.coordinates;
+        const coordinates = e.features[0].geometry.coordinates.slice();
 
         const stationName = properties.name;
         const zone = properties.zone;
         const postcode = properties.postcode;
 
         
-        if (currentPersonaMarker) {
-            currentPersonaMarker.setLngLat(coordinates);
+        if (currentMarker) {
+            currentMarker.setLngLat(coordinates);
         } else {
-            
-            const el = document.createElement('div');
-            el.className = 'persona-marker';
-            el.innerHTML = '🚶‍♂️';
-            el.style.fontSize = '24px';
-            el.style.cursor = 'pointer';
-
-            currentPersonaMarker = new mapboxgl.Marker(el)
+            currentMarker = new mapboxgl.Marker({ color: '#ef4444' }) 
                 .setLngLat(coordinates)
                 .addTo(map);
         }
+
+       
+        map.flyTo({
+            center: coordinates,
+            zoom: 11.5,
+            pitch: 50,
+            duration: 1500,
+            essential: true
+        });
 
        
         updateAuditDashboard(stationName, zone, postcode, coordinates);
@@ -194,6 +196,8 @@ function updateAuditDashboard(stationName, zone, postcode, coordinates) {
         document.getElementById('res-vs-z1').innerText = `+£${vsZone1.toLocaleString()}`;
     }
 
+    statusBox.style.display = 'none';
+    resultsPanel.style.display = 'block';
 
     const lineGeoJSON = {
         "type": "FeatureCollection",
@@ -202,9 +206,26 @@ function updateAuditDashboard(stationName, zone, postcode, coordinates) {
             "geometry": { "type": "LineString", "coordinates": [coordinates, LONDON_CENTER] }
         }]
     };
-    if (map.getSource('flow-line-source')) {
-        map.getSource('flow-line-source').setData(lineGeoJSON);
+
+    map.getSource('flow-line-source').setData(lineGeoJSON);
+
+    if (currentMarker) {
+        currentMarker.setLngLat([longitude, latitude]);
+    } else {
+        currentMarker = new mapboxgl.Marker({ color: '#ef4444' })
+            .setLngLat([longitude, latitude])
+            .addTo(map);
     }
+
+    map.flyTo({
+            center: [longitude, latitude],
+            zoom: 11.5,
+            pitch: 50,
+            duration: 1800,
+            essential: true
+        });
+
+
 }
 
 
@@ -236,40 +257,28 @@ map.on('load', () => {
         type: 'heatmap',
         source: 'london-gradient-source',
         maxzoom: 15,
-        paint: {
-            'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 9, ['*', ['get', 'radius'], 0.02], 11, ['*', ['get', 'radius'], 0.05]],
-            'heatmap-color': ['interpolate', ['linear'], ['heatmap-density'], 
-                0, 'rgba(255, 68, 68, 0)', 
-                0.2, 'rgba(255, 68, 68, 0.05)',  
-                0.5, 'rgba(255, 68, 68, 0.15)', 
-                0.8, 'rgba(255, 68, 68, 0.35)', 
-                1, 'rgba(255, 68, 68, 0.60)'     
-            ],
-            'heatmap-opacity': 0.9
+        paint: { }
+        
+    });
+
+    map.addSource('stations-source', { 
+        type: 'geojson', 
+        data: {
+            "type": "FeatureCollection",
+            "features": TUBE_NETWORK_DATABASE.map(s => ({
+                "type": "Feature",
+                "properties": { "name": s.name, "zone": s.zone, "postcode": s.postcode },
+                "geometry": { "type": "Point", "coordinates": [s.lon, s.lat] }
+            }))
         }
     });
 
-    map.addSource('stations-source', { type: 'geojson', data: STATIONS_GEOJSON });
     map.addLayer({
         id: 'stations-dots-layer',
         type: 'circle',
         source: 'stations-source',
-        paint: {
-            'circle-radius': ['interpolate', ['linear'], ['zoom'], 9, 4.5, 14, 9],
-            'circle-color': [
-                'match', ['get', 'zone'],
-                1, '#5eead4', 
-                2, '#38bdf8', 
-                3, '#818cf8', 
-                4, '#fbbf24', 
-                5, '#fb923c', 
-                6, '#ef4444', 
-                '#ffffff'
-            ],
-            'circle-opacity': 0.85,
-            'circle-stroke-color': '#000',
-            'circle-stroke-width': 1.2
-        }
+        paint: {}
+        
     });
 
     map.addSource('flow-line-source', { type: 'geojson', data: { "type": "FeatureCollection", "features": [] } });
@@ -277,19 +286,22 @@ map.on('load', () => {
         id: 'flow-line-layer',
         type: 'line',
         source: 'flow-line-source',
-        paint: {
-            'line-color': '#ef4444',
-            'line-width': 3,
-            'line-dasharray': [2, 2], 
-            'line-opacity': 0.8
-        }
+        paint: { }
     });
+    map.on('click', 'stations-dots-layer', (e) => {
+       
+    });
+
+
+    map.on('mouseenter', 'stations-dots-layer', () => map.getCanvas().style.cursor = 'pointer');
+    map.on('mouseleave', 'stations-dots-layer', () => map.getCanvas().style.cursor = '');
+
 });
+
 
 document.getElementById('auditBtn').addEventListener('click', runAudit);
 document.getElementById('pcInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') runAudit(); });
 
-let currentMarker = null;
 
 async function runAudit() {
     const postcode = document.getElementById('pcInput').value.trim().replace(/\s+/g, '');
