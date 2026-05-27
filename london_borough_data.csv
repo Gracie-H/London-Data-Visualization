@@ -1,0 +1,34 @@
+borough,avg_income,poverty_rate,dominant_zone
+Barking and Dagenham,26100,31,6
+Barnet,38500,16,4
+Bexley,32400,15,6
+Brent,30100,29,4
+Bromley,41200,13,5
+Camden,48500,16,2
+City of London,59100,12,1
+Croydon,33900,21,5
+Ealing,34200,22,4
+Enfield,29800,28,5
+Greenwich,35600,23,3
+Hackney,36800,34,2
+Hammersmith and Fulham,46900,15,2
+Haringey,32900,30,3
+Harrow,35100,16,5
+Havering,28900,19,6
+Hillingdon,31200,18,6
+Hounslow,33400,20,4
+Islington,44100,25,2
+Kensington and Chelsea,64200,11,1
+Kingston upon Thames,43800,11,6
+Lambeth,41900,24,2
+Lewisham,34700,26,3
+Merton,40700,14,4
+Newham,29400,36,3
+Redbridge,31800,22,4
+Richmond upon Thames,46200,10,4
+Southwark,39500,26,2
+Sutton,36100,14,5
+Tower Hamlets,34600,39,2
+Waltham Forest,31900,24,3
+Wandsworth,49200,13,3
+Westminster,61800,13,1

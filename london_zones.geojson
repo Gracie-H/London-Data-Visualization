@@ -1,0 +1,11 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+      { "type": "Feature", "properties": { "zone": 1, "fill_color": "#ff4444", "opacity": 0.15 }, "geometry": { "type": "Polygon", "coordinates": [[[-0.141, 51.521], [-0.101, 51.521], [-0.101, 51.491], [-0.141, 51.491], [-0.141, 51.521]]] } },
+      { "type": "Feature", "properties": { "zone": 2, "fill_color": "#ff4444", "opacity": 0.25 }, "geometry": { "type": "Polygon", "coordinates": [[[-0.181, 51.541], [-0.061, 51.541], [-0.061, 51.471], [-0.181, 51.471], [-0.181, 51.541]]] } },
+      { "type": "Feature", "properties": { "zone": 3, "fill_color": "#ff4444", "opacity": 0.35 }, "geometry": { "type": "Polygon", "coordinates": [[[-0.221, 51.561], [-0.021, 51.561], [-0.021, 51.451], [-0.221, 51.451], [-0.221, 51.561]]] } },
+      { "type": "Feature", "properties": { "zone": 4, "fill_color": "#ff4444", "opacity": 0.45 }, "geometry": { "type": "Polygon", "coordinates": [[[-0.281, 51.591], [0.041, 51.591], [0.041, 51.411], [-0.281, 51.411], [-0.281, 51.591]]] } },
+      { "type": "Feature", "properties": { "zone": 5, "fill_color": "#ff4444", "opacity": 0.55 }, "geometry": { "type": "Polygon", "coordinates": [[[-0.341, 51.621], [0.101, 51.621], [0.101, 51.371], [-0.341, 51.371], [-0.341, 51.621]]] } },
+      { "type": "Feature", "properties": { "zone": 6, "fill_color": "#ff4444", "opacity": 0.65 }, "geometry": { "type": "Polygon", "coordinates": [[[-0.421, 51.661], [0.181, 51.661], [0.181, 51.311], [-0.421, 51.311], [-0.421, 51.661]]] } }
+    ]
+  }

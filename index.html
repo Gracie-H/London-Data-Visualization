@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>URBAN AUDIT: Spatial Disparity</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css' rel='stylesheet' />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="top-nav">
+    <button class="nav-btn active" id="tab-page1" onclick="showPage(1)">Page 1: Introduction</button>
+    <button class="nav-btn" id="tab-page2" onclick="showPage(2)">Page 2: Map Audit</button>
+    <button class="nav-btn" id="tab-page3" onclick="showPage(3)">Page 3: Data Summary</button>
+</div>
+
+<div id="main-container">
+    <div id="sidebar">
+        <h1>[SYSTEM AUDIT]</h1>
+        <p class="description">Mapping London's transit toll. This system senses spatial discrimination by calculating the financial premium paid by outer zone residents compared to Central London and NYC benchmarks.</p>
+        
+        <div class="input-group">
+            <label>Identity Input (Postcode):</label>
+            <div style="display: flex; gap: 10px; margin-top: 8px;">
+                <input type="text" id="pcInput" placeholder="e.g. SE1 8UF or RM12 4AB">
+                <button id="auditBtn">AUDIT</button>
+            </div>
+        </div>
+        
+        <div id="audit-results" style="display: none;">
+            <div class="metric-card">
+                <div class="label">DETECTED LOCATION</div>
+                <div class="value" id="res-zone" style="color: #ff4444;">ZONE -</div>
+                <div class="sub" id="res-station">Nearest Station: -</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="label">YOUR ANNUAL TRANSIT TOLL</div>
+                <div class="value" id="res-fare">£-,---</div>
+                <div class="sub">Based on official TfL Travelcard pricing</div>
+            </div>
+
+            <div class="metric-card alert">
+                <div class="label">THE ZONE 1 SUBSIDY GAP</div>
+                <div class="value" id="res-vs-z1">+£-,---</div>
+                <div class="sub">More than a Central London resident pays annually</div>
+            </div>
+
+            <div class="metric-card alert">
+                <div class="label">CROSS-BORDER DISPARITY</div>
+                <div class="value" id="res-vs-ny">+£-,---</div>
+                <div class="sub">Compared to standard NYC MTA Annual equivalent</div>
+            </div>
+        </div>
+
+        <div id="status-box" class="report-box">
+            STATUS: AWAITING_INPUT...<br><br>
+            SYSTEM READY: Enter a London postcode to initiate spatial cost audit.
+        </div>
+    </div>
+
+    <div id="map"></div>
+</div>
+
+<div id="simple-page-1" class="custom-page-overlay">
+    <div class="page-content-box">
+        <h2 style="color: #ff4444; margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px;">URBAN AUDIT: Spatial Disparity</h2>
+        <p>project introduction.</p>
+        <button onclick="showPage(2)" style="margin-top: 15px; width: 100%;">LAUNCH AUDIT SYSTEM →</button>
+    </div>
+</div>
+
+<div id="simple-page-3" class="custom-page-overlay" style="display: none;">
+    <div class="page-content-box" style="max-width: 800px;">
+        <h2 style="color: #ff4444; margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px;">DATA SUMMARY</h2>
+        <p>This dashboard exposes how London’s transport fares unfairly impact different neighborhoods. By comparing local income data (from the ONS) with official TfL fares, it calculates your 'Transit Burden'—showing exactly how much harder outer-zone residents have to pay to commute compared to those in the city center.</p>
+        
+        <div style="width: 100%; height: 320px; background: #000; margin-top: 15px; border: 1px solid #333; padding: 10px; box-sizing: border-box;">
+            <canvas id="bubbleChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
