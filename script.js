@@ -187,8 +187,8 @@ function updateAuditDashboard(stationName, zone, postcode, coordinates) {
     const vsZone1 = userAnnual - zone1Annual;
     const vsNY = Math.round(userAnnual - nyAnnual);
 
-    const [lon, lat] = coordinates;
-    const distanceKM = getHaversineDistance(coordinates[1], coordinates[0], LONDON_CENTER[1], LONDON_CENTER[0]);
+    const [stationLon, stationLat] = coordinates;
+    const distanceKM = getHaversineDistance(stationLat, stationLon, LONDON_CENTER[1], LONDON_CENTER[0]);
 
     document.getElementById('res-zone').innerText = `ZONE ${zone}`;
     document.getElementById('res-station').innerText = `Target Node: ${stationName} Station (Postcode: ${postcode})`;
@@ -202,47 +202,22 @@ function updateAuditDashboard(stationName, zone, postcode, coordinates) {
 
     document.getElementById('res-vs-ny').innerText = vsNY > 0 ? `+£${vsNY.toLocaleString()}` : `-£${Math.abs(vsNY).toLocaleString()}`;
 
+
+
     statusBox.style.display = 'none';
     resultsPanel.style.display = 'block';
 
-    if (map.getLayer('flow-line-layer') && map.getSource('flow-line-source')) {
-    const lineGeoJSON = {
-        "type": "FeatureCollection",
-        "features": [{
-            "type": "Feature",
-            "geometry": { "type": "LineString", "coordinates": [coordinates, LONDON_CENTER] }
-        }]
-    };
-}
-
-    if (map.getLayer('flow-line-layer') && map.getSource('flow-line-source')) {
-        const lineGeoJSON = {
+    if (map.getSource('flow-line-source')) {
+        const stationLineGeoJSON = {
             "type": "FeatureCollection",
             "features": [{
                 "type": "Feature",
-                "geometry": { "type": "LineString", "coordinates": [[longitude, latitude], LONDON_CENTER] }
+                "geometry": { "type": "LineString", "coordinates": [[stationLon, stationLat], LONDON_CENTER] }
             }]
         };
-        map.getSource('flow-line-source').setData(lineGeoJSON);
+        map.getSource('flow-line-source').setData(stationLineGeoJSON);
     }
-
-    if (currentMarker) {
-        currentMarker.setLngLat([longitude, latitude]);
-    } else {
-        currentMarker = new mapboxgl.Marker({ color: '#ef4444' })
-            .setLngLat([longitude, latitude])
-            .addTo(map);
-    }
-
-    map.flyTo({
-            center: [longitude, latitude],
-            zoom: 11.5,
-            pitch: 50,
-            duration: 1800,
-            essential: true
-        });
-
-
+    
 }
 
 
@@ -326,6 +301,7 @@ async function runAudit() {
     const resultsPanel = document.getElementById('audit-results');
 
     if (!postcode) return;
+    showPage(2);
 
     statusBox.style.display = 'block';
     resultsPanel.style.display = 'none';
@@ -385,28 +361,48 @@ async function runAudit() {
         resultsPanel.style.display = 'block';
 
         
-        const lineGeoJSON = {
-            "type": "FeatureCollection",
-            "features": [{
-                "type": "Feature",
-                "geometry": { "type": "LineString", "coordinates": [[longitude, latitude], LONDON_CENTER] }
-            }]
-        };
-        map.getSource('flow-line-source').setData(lineGeoJSON);
+        setTimeout(() => {
+            const lineGeoJSON = {
+                "type": "FeatureCollection",
+                "features": [{
+                    "type": "Feature",
+                    "geometry": { "type": "LineString", "coordinates": [[longitude, latitude], LONDON_CENTER] }
+                }]
+            };
 
-        if (currentMarker) currentMarker.remove();
-        currentMarker = new mapboxgl.Marker({ color: '#ef4444' })
-            .setLngLat([longitude, latitude])
-            .addTo(map);
+            if (map.getSource('flow-line-source')) {
+                map.getSource('flow-line-source').setData(lineGeoJSON);
+            }
+            
 
-        const bounds = new mapboxgl.LngLatBounds().extend([longitude, latitude]).extend(LONDON_CENTER);
-        map.fitBounds(bounds, { padding: 130, pitch: 50, duration: 2000 });
+
+        if (currentMarker) {
+            currentMarker.setLngLat([longitude, latitude]);
+        } else {
+            currentMarker = new mapboxgl.Marker({ color: '#ef4444' })
+                .setLngLat([longitude, latitude])
+                .addTo(map);
+        }
+
+        map.flyTo({
+            center: [longitude, latitude], 
+            zoom: 12,                      
+            pitch: 55,                 
+            bearing: -10,                
+            duration: 2000,             
+            essential: true
+        });
+    }, 60);
+
+
+        
 
     } catch (error) {
         statusBox.innerHTML = "STATUS: <span style='color:#ff4444'>SYSTEM_ERROR</span>";
         console.error(error);
     }
 }
+
 
 function getHaversineDistance(lat1, lon1, lat2, lon2) {
     const R = 6371;
