@@ -183,8 +183,12 @@ function updateAuditDashboard(stationName, zone, postcode, coordinates) {
 
     const userAnnual = FARE_DATA.london[zone] || 2976;
     const zone1Annual = FARE_DATA.london[1];
+    const nyAnnual = FARE_DATA.newYork;
     const vsZone1 = userAnnual - zone1Annual;
+    const vsNY = Math.round(userAnnual - nyAnnual);
 
+    const [lon, lat] = coordinates;
+    const distanceKM = getHaversineDistance(coordinates[1], coordinates[0], LONDON_CENTER[1], LONDON_CENTER[0]);
 
     document.getElementById('res-zone').innerText = `ZONE ${zone}`;
     document.getElementById('res-station').innerText = `Target Node: ${stationName} Station (Postcode: ${postcode})`;
@@ -196,9 +200,12 @@ function updateAuditDashboard(stationName, zone, postcode, coordinates) {
         document.getElementById('res-vs-z1').innerText = `+£${vsZone1.toLocaleString()}`;
     }
 
+    document.getElementById('res-vs-ny').innerText = vsNY > 0 ? `+£${vsNY.toLocaleString()}` : `-£${Math.abs(vsNY).toLocaleString()}`;
+
     statusBox.style.display = 'none';
     resultsPanel.style.display = 'block';
 
+    if (map.getLayer('flow-line-layer') && map.getSource('flow-line-source')) {
     const lineGeoJSON = {
         "type": "FeatureCollection",
         "features": [{
@@ -206,8 +213,18 @@ function updateAuditDashboard(stationName, zone, postcode, coordinates) {
             "geometry": { "type": "LineString", "coordinates": [coordinates, LONDON_CENTER] }
         }]
     };
+}
 
-    map.getSource('flow-line-source').setData(lineGeoJSON);
+    if (map.getLayer('flow-line-layer') && map.getSource('flow-line-source')) {
+        const lineGeoJSON = {
+            "type": "FeatureCollection",
+            "features": [{
+                "type": "Feature",
+                "geometry": { "type": "LineString", "coordinates": [[longitude, latitude], LONDON_CENTER] }
+            }]
+        };
+        map.getSource('flow-line-source').setData(lineGeoJSON);
+    }
 
     if (currentMarker) {
         currentMarker.setLngLat([longitude, latitude]);
@@ -257,7 +274,7 @@ map.on('load', () => {
         type: 'heatmap',
         source: 'london-gradient-source',
         maxzoom: 15,
-        paint: { }
+        paint: {'heatmap-opacity': 0.4 }
         
     });
 
