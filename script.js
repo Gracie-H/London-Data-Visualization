@@ -5,24 +5,26 @@ function showPage(pageNum) {
     const p3 = document.getElementById('simple-page-3');
     
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById(`tab-page1`).classList.toggle('active', pageNum === 1);
-    document.getElementById(`tab-page2`).classList.toggle('active', pageNum === 2);
-    document.getElementById(`tab-page3`).classList.toggle('active', pageNum === 3);
+    const t1 = document.getElementById(`tab-page1`);
+    const t2 = document.getElementById(`tab-page2`);
+    const t3 = document.getElementById(`tab-page3`);
+    if(t1) t1.classList.toggle('active', pageNum === 1);
+    if(t2) t2.classList.toggle('active', pageNum === 2);
+    if(t3) t3.classList.toggle('active', pageNum === 3);
 
-    if (pageNum === 1) {
+    if (pageNum === 1 && p1) {
         p1.style.display = 'flex';
-        p3.style.display = 'none';
+        if(p3) p3.style.display = 'none';
     } else if (pageNum === 2) {
-        p1.style.display = 'none';
-        p3.style.display = 'none';
+        if(p1) p1.style.display = 'none';
+        if(p3) p3.style.display = 'none';
         if (map) setTimeout(() => map.resize(), 50);
-    } else if (pageNum === 3) {
-        p1.style.display = 'none';
+    } else if (pageNum === 3 && p3) {
+        if(p1) p1.style.display = 'none';
         p3.style.display = 'flex';
         if (myBubbleChart) setTimeout(() => myBubbleChart.resize(), 50);
     }
 }
-
 
 const MAPBOX_TOKEN = 'pk.eyJ1IjoiZ3JhY2NlZSIsImEiOiJjbW84bml2aDcwMGRoMnJyN3IyYjM3YmdxIn0.gnpai_1oKDMZtuGhgxTiTQ';
 mapboxgl.accessToken = MAPBOX_TOKEN;
@@ -38,6 +40,15 @@ const map = new mapboxgl.Map({
 const FARE_DATA = {
     london: { 1: 1628, 2: 1628, 3: 1916, 4: 2340, 5: 2784, 6: 2976 },
     newYork: 1560 
+};
+
+const OFFICIAL_TIME_DATA = {
+    "1": 35,
+    "2": 42,
+    "3": 50,
+    "4": 56,
+    "5": 63,
+    "6": 72
 };
 
 const LONDON_CENTER = [-0.1276, 51.5074]; 
@@ -96,9 +107,9 @@ const TUBE_NETWORK_DATABASE = [
     { name: "Loughton", zone: 6, lat: 51.6414, lon: 0.0419, postcode: "IG10 4RE" }
 ];
 
-
 let currentMarker = null;
 
+// 🛠️ 补全了之前空白的样式参数，防止地图渲染挂起
 map.on('load', () => {
     
     map.addSource('stations-source', {
@@ -113,7 +124,6 @@ map.on('load', () => {
         }
     });
 
-    // color
     map.addLayer({
         id: 'stations-dots-layer',
         type: 'circle',
@@ -136,16 +146,26 @@ map.on('load', () => {
         }
     });
 
+    map.addSource('flow-line-source', { 
+        type: 'geojson', 
+        data: { "type": "FeatureCollection", "features": [] } 
+    });
+    
+    map.addLayer({
+        id: 'flow-line-layer',
+        type: 'line',
+        source: 'flow-line-source',
+        paint: {
+            'line-color': '#ff4444',
+            'line-width': 3,
+            'line-dasharray': [2, 2]
+        }
+    });
     
     map.on('click', 'stations-dots-layer', (e) => {
         const properties = e.features[0].properties;
         const coordinates = e.features[0].geometry.coordinates.slice();
 
-        const stationName = properties.name;
-        const zone = properties.zone;
-        const postcode = properties.postcode;
-
-        
         if (currentMarker) {
             currentMarker.setLngLat(coordinates);
         } else {
@@ -154,7 +174,6 @@ map.on('load', () => {
                 .addTo(map);
         }
 
-       
         map.flyTo({
             center: coordinates,
             zoom: 11.5,
@@ -162,16 +181,13 @@ map.on('load', () => {
             duration: 1500,
             essential: true
         });
-
        
-        updateAuditDashboard(stationName, zone, postcode, coordinates);
+        updateAuditDashboard(properties.name, properties.zone, properties.postcode, coordinates);
     });
 
-    // stop
     map.on('mouseenter', 'stations-dots-layer', () => map.getCanvas().style.cursor = 'pointer');
     map.on('mouseleave', 'stations-dots-layer', () => map.getCanvas().style.cursor = '');
 });
-
 
 function updateAuditDashboard(stationName, zone, postcode, coordinates) {
     const resultsPanel = document.getElementById('audit-results');
@@ -180,33 +196,61 @@ function updateAuditDashboard(stationName, zone, postcode, coordinates) {
     if(statusBox) statusBox.style.display = 'none';
     if(resultsPanel) resultsPanel.style.display = 'block';
 
-
     const userAnnual = FARE_DATA.london[zone] || 2976;
-    const zone1Annual = FARE_DATA.london[1];
-    const nyAnnual = FARE_DATA.newYork;
-    const vsZone1 = userAnnual - zone1Annual;
-    const vsNY = Math.round(userAnnual - nyAnnual);
-
     const [stationLon, stationLat] = coordinates;
-    const distanceKM = getHaversineDistance(stationLat, stationLon, LONDON_CENTER[1], LONDON_CENTER[0]);
 
-    document.getElementById('res-zone').innerText = `ZONE ${zone}`;
-    document.getElementById('res-station').innerText = `Target Node: ${stationName} Station (Postcode: ${postcode})`;
-    document.getElementById('res-fare').innerText = `£${userAnnual.toLocaleString()}`;
-    
-    if (vsZone1 === 0) {
-        document.getElementById('res-vs-z1').innerText = "£0 (BASE RATE ACCESS)";
-    } else {
-        document.getElementById('res-vs-z1').innerText = `+£${vsZone1.toLocaleString()}`;
+    const zoneKey = String(zone);
+    const dailyFare = userAnnual / 220; 
+    const dailyTime = OFFICIAL_TIME_DATA[zoneKey] || 56; 
+
+    const farePercent = Math.min((dailyFare / 15) * 100, 100);
+    const timePercent = Math.min((dailyTime / 120) * 100, 100);
+
+    const elFare = document.getElementById('res-daily-fare');
+    const elBarFare = document.getElementById('bar-daily-fare');
+    const elTime = document.getElementById('res-daily-time');
+    const elBarTime = document.getElementById('bar-daily-time');
+
+    if(elFare) elFare.innerText = `£${dailyFare.toFixed(2)} / Day`;
+    if(elBarFare) elBarFare.style.width = `${farePercent}%`;
+    if(elTime) elTime.innerText = `${dailyTime} Mins / Day`;
+    if(elBarTime) elBarTime.style.width = `${timePercent}%`;
+
+    const nycDailyEquivalent = 5.60;
+    const dailyGapVsNyc = dailyFare - nycDailyEquivalent;
+
+    const elGapBar = document.getElementById('disparity-gap-bar');
+    const elDispText = document.getElementById('res-disparity-text');
+
+    if (elGapBar && elDispText) {
+        if (dailyGapVsNyc >= 0) {
+            elGapBar.style.left = '40%';
+            elGapBar.style.width = `${Math.min((dailyGapVsNyc / 10) * 60, 60)}%`;
+            elGapBar.style.background = 'rgba(255, 64, 64, 0.15)';
+            elGapBar.style.borderLeft = '2px solid #ff4444';
+            elGapBar.style.borderRight = 'none';
+            elDispText.innerText = `+£${dailyGapVsNyc.toFixed(2)} / Day`;
+            elDispText.style.color = '#ff4444';
+        } else {
+            const leftWidth = Math.min((Math.abs(dailyGapVsNyc) / 10) * 40, 40);
+            elGapBar.style.left = `${40 - leftWidth}%`;
+            elGapBar.style.width = `${leftWidth}%`;
+            elGapBar.style.background = 'rgba(94, 234, 212, 0.15)';
+            elGapBar.style.borderRight = '2px solid #5eead4';
+            elGapBar.style.borderLeft = 'none';
+            elDispText.innerText = `-£${Math.abs(dailyGapVsNyc).toFixed(2)} / Day`;
+            elDispText.style.color = '#5eead4';
+        }
     }
 
-    document.getElementById('res-vs-ny').innerText = vsNY > 0 ? `+£${vsNY.toLocaleString()}` : `-£${Math.abs(vsNY).toLocaleString()}`;
+    const elResZone = document.getElementById('res-zone');
+    const elResStation = document.getElementById('res-station');
+    const elResFare = document.getElementById('res-fare');
 
-
-
-    statusBox.style.display = 'none';
-    resultsPanel.style.display = 'block';
-
+    if(elResZone) elResZone.innerText = `ZONE ${zone}`;
+    if(elResStation) elResStation.innerText = `Target Node: ${stationName} Station (Postcode: ${postcode})`;
+    if(elResFare) elResFare.innerText = `£${userAnnual.toLocaleString()}`;
+    
     if (map.getSource('flow-line-source')) {
         const stationLineGeoJSON = {
             "type": "FeatureCollection",
@@ -217,114 +261,46 @@ function updateAuditDashboard(stationName, zone, postcode, coordinates) {
         };
         map.getSource('flow-line-source').setData(stationLineGeoJSON);
     }
-    
 }
 
+const auditBtn = document.getElementById('auditBtn');
+if(auditBtn) auditBtn.addEventListener('click', runAudit);
 
-const STATIONS_GEOJSON = {
-    "type": "FeatureCollection",
-    "features": TUBE_NETWORK_DATABASE.map(s => ({
-        "type": "Feature",
-        "properties": { "name": s.name, "zone": s.zone },
-        "geometry": { "type": "Point", "coordinates": [s.lon, s.lat] }
-    }))
-};
-
-const VISUAL_ZONES_GEOJSON = {
-    "type": "FeatureCollection",
-    "features": [
-        { "type": "Feature", "properties": { "zone": 1, "radius": 4500 }, "geometry": { "type": "Point", "coordinates": LONDON_CENTER } },
-        { "type": "Feature", "properties": { "zone": 2, "radius": 8000 }, "geometry": { "type": "Point", "coordinates": LONDON_CENTER } },
-        { "type": "Feature", "properties": { "zone": 3, "radius": 12000 }, "geometry": { "type": "Point", "coordinates": LONDON_CENTER } },
-        { "type": "Feature", "properties": { "zone": 4, "radius": 17000 }, "geometry": { "type": "Point", "coordinates": LONDON_CENTER } },
-        { "type": "Feature", "properties": { "zone": 5, "radius": 22000 }, "geometry": { "type": "Point", "coordinates": LONDON_CENTER } },
-        { "type": "Feature", "properties": { "zone": 6, "radius": 30000 }, "geometry": { "type": "Point", "coordinates": LONDON_CENTER } }
-    ]
-};
-
-map.on('load', () => {
-    map.addSource('london-gradient-source', { type: 'geojson', data: VISUAL_ZONES_GEOJSON });
-    map.addLayer({
-        id: 'london-gradient-layer',
-        type: 'heatmap',
-        source: 'london-gradient-source',
-        maxzoom: 15,
-        paint: {'heatmap-opacity': 0.4 }
-        
-    });
-
-    map.addSource('stations-source', { 
-        type: 'geojson', 
-        data: {
-            "type": "FeatureCollection",
-            "features": TUBE_NETWORK_DATABASE.map(s => ({
-                "type": "Feature",
-                "properties": { "name": s.name, "zone": s.zone, "postcode": s.postcode },
-                "geometry": { "type": "Point", "coordinates": [s.lon, s.lat] }
-            }))
-        }
-    });
-
-    map.addLayer({
-        id: 'stations-dots-layer',
-        type: 'circle',
-        source: 'stations-source',
-        paint: {}
-        
-    });
-
-    map.addSource('flow-line-source', { type: 'geojson', data: { "type": "FeatureCollection", "features": [] } });
-    map.addLayer({
-        id: 'flow-line-layer',
-        type: 'line',
-        source: 'flow-line-source',
-        paint: { }
-    });
-    map.on('click', 'stations-dots-layer', (e) => {
-       
-    });
-
-
-    map.on('mouseenter', 'stations-dots-layer', () => map.getCanvas().style.cursor = 'pointer');
-    map.on('mouseleave', 'stations-dots-layer', () => map.getCanvas().style.cursor = '');
-
-});
-
-
-document.getElementById('auditBtn').addEventListener('click', runAudit);
-document.getElementById('pcInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') runAudit(); });
-
+const pcInput = document.getElementById('pcInput');
+if(pcInput) pcInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') runAudit(); });
 
 async function runAudit() {
-    const postcode = document.getElementById('pcInput').value.trim().replace(/\s+/g, '');
+    const pcInputEl = document.getElementById('pcInput');
+    if(!pcInputEl) return;
+    const postcode = pcInputEl.value.trim().replace(/\s+/g, '');
     const statusBox = document.getElementById('status-box');
     const resultsPanel = document.getElementById('audit-results');
 
     if (!postcode) return;
     showPage(2);
 
-    statusBox.style.display = 'block';
-    resultsPanel.style.display = 'none';
-    statusBox.innerHTML = "STATUS: QUERYING SPATIAL DATABASE...";
+    if(statusBox) {
+        statusBox.style.display = 'block';
+        statusBox.innerHTML = "STATUS: QUERYING SPATIAL DATABASE...";
+    }
+    if(resultsPanel) resultsPanel.style.display = 'none';
 
     try {
         const pcRes = await fetch(`https://api.postcodes.io/postcodes/${postcode}`);
         const pcData = await pcRes.json();
         
         if (pcData.status !== 200) {
-            statusBox.innerHTML = "STATUS: <span style='color:#ff4444'>SIGNAL_ERROR</span><br><br>Geographical area not recognized.";
+            if(statusBox) statusBox.innerHTML = "STATUS: <span style='color:#ff4444'>SIGNAL_ERROR</span><br><br>Geographical area not recognized.";
             return;
         }
 
         const { latitude, longitude } = pcData.result;
-        statusBox.innerHTML = "STATUS: COORDS ACQUIRED.<br>CROSS-REFERENCING TFL LAYER...";
+        if(statusBox) statusBox.innerHTML = "STATUS: COORDS ACQUIRED.<br>CROSS-REFERENCING TFL LAYER...";
 
-        
         let closestStation = TUBE_NETWORK_DATABASE[0];
         let minD = Infinity;
         
         TUBE_NETWORK_DATABASE.forEach(s => {
-            
             const d = getHaversineDistance(latitude, longitude, s.lat, s.lon);
             if (d < minD) { 
                 minD = d; 
@@ -333,34 +309,13 @@ async function runAudit() {
         });
 
         const userZone = closestStation.zone;
-        
-        //fix
         const distanceKM = getHaversineDistance(latitude, longitude, LONDON_CENTER[1], LONDON_CENTER[0]);
 
-        const userAnnual = FARE_DATA.london[userZone];
-        const zone1Annual = FARE_DATA.london[1];
-        const nyAnnual = FARE_DATA.newYork;
-        const vsZone1 = userAnnual - zone1Annual;
-        const vsNY = Math.round(userAnnual - nyAnnual);
+        updateAuditDashboard(closestStation.name, userZone, postcode, [longitude, latitude]);
 
-        
-        document.getElementById('res-zone').innerText = `ZONE ${userZone}`;
-        document.getElementById('res-station').innerText = `Target Node: ${closestStation.name} Station (${distanceKM.toFixed(2)} km displacement)`;
-        document.getElementById('res-fare').innerText = `£${userAnnual.toLocaleString()}`;
-        
-        
-        if (vsZone1 === 0) {
-            document.getElementById('res-vs-z1').innerText = "£0 (BASE RATE ACCESS)";
-        } else {
-            document.getElementById('res-vs-z1').innerText = `+£${vsZone1.toLocaleString()}`;
-        }
-        
-        document.getElementById('res-vs-ny').innerText = vsNY > 0 ? `+£${vsNY.toLocaleString()}` : `-£${Math.abs(vsNY).toLocaleString()}`;
+        const elResStation = document.getElementById('res-station');
+        if(elResStation) elResStation.innerText = `Target Node: ${closestStation.name} Station (${distanceKM.toFixed(2)} km displacement)`;
 
-        statusBox.style.display = 'none';
-        resultsPanel.style.display = 'block';
-
-        
         setTimeout(() => {
             const lineGeoJSON = {
                 "type": "FeatureCollection",
@@ -374,35 +329,29 @@ async function runAudit() {
                 map.getSource('flow-line-source').setData(lineGeoJSON);
             }
             
+            if (currentMarker) {
+                currentMarker.setLngLat([longitude, latitude]);
+            } else {
+                currentMarker = new mapboxgl.Marker({ color: '#ef4444' })
+                    .setLngLat([longitude, latitude])
+                    .addTo(map);
+            }
 
-
-        if (currentMarker) {
-            currentMarker.setLngLat([longitude, latitude]);
-        } else {
-            currentMarker = new mapboxgl.Marker({ color: '#ef4444' })
-                .setLngLat([longitude, latitude])
-                .addTo(map);
-        }
-
-        map.flyTo({
-            center: [longitude, latitude], 
-            zoom: 12,                      
-            pitch: 55,                 
-            bearing: -10,                
-            duration: 2000,             
-            essential: true
-        });
-    }, 60);
-
-
-        
+            map.flyTo({
+                center: [longitude, latitude], 
+                zoom: 12,                      
+                pitch: 55,                 
+                bearing: -10,                
+                duration: 2000,             
+                essential: true
+            });
+        }, 60);
 
     } catch (error) {
-        statusBox.innerHTML = "STATUS: <span style='color:#ff4444'>SYSTEM_ERROR</span>";
+        if(statusBox) statusBox.innerHTML = "STATUS: <span style='color:#ff4444'>SYSTEM_ERROR</span>";
         console.error(error);
     }
 }
-
 
 function getHaversineDistance(lat1, lon1, lat2, lon2) {
     const R = 6371;
@@ -412,17 +361,15 @@ function getHaversineDistance(lat1, lon1, lat2, lon2) {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
 
-
 function loadAndProcessBoroughData() {
+    if (typeof Papa === 'undefined') return; 
     Papa.parse('london_borough_data.csv', {
         download: true,
         header: true,
         dynamicTyping: true,
         complete: function(results) {
             const processedData = results.data.map(row => {
-                
                 if (!row.borough) return null;
-                
                 const zone = parseInt(row.dominant_zone);
                 const annualFare = FARE_DATA.london[zone] || 2976;
                 const burdenRatio = ((annualFare / row.avg_income) * 100).toFixed(1);
@@ -436,13 +383,10 @@ function loadAndProcessBoroughData() {
                 };
             }).filter(item => item !== null);
 
+            const chartEl = document.getElementById('bubbleChart');
+            if(chartEl) renderBubbleChart(processedData);
 
-            renderBubbleChart(processedData);
-
-          
             const sortedByBurden = [...processedData].sort((a, b) => b.y - a.y);
-
-  
             const heavyList = document.getElementById('heavy-boroughs-list');
             if (heavyList) {
                 heavyList.innerHTML = sortedByBurden.slice(0, 3).map((b, index) => `
@@ -453,7 +397,6 @@ function loadAndProcessBoroughData() {
                 `).join('');
             }
 
-           
             const lightList = document.getElementById('light-boroughs-list');
             if (lightList) {
                 const lowest = sortedByBurden.slice(-3).reverse();
@@ -469,7 +412,9 @@ function loadAndProcessBoroughData() {
 }
 
 function renderBubbleChart(chartDataset) {
-    const ctx = document.getElementById('bubbleChart').getContext('2d');
+    const chartCanvas = document.getElementById('bubbleChart');
+    if(!chartCanvas || typeof Chart === 'undefined') return;
+    const ctx = chartCanvas.getContext('2d');
     
     if (myBubbleChart) {
         myBubbleChart.destroy();
@@ -481,7 +426,6 @@ function renderBubbleChart(chartDataset) {
             datasets: [{
                 label: 'London 32 Boroughs',
                 data: chartDataset,
-                
                 backgroundColor: (context) => {
                     const zone = context.raw?.zone;
                     if (zone === 1) return 'rgba(94, 234, 212, 0.75)';  
@@ -498,7 +442,6 @@ function renderBubbleChart(chartDataset) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                
                 tooltip: {
                     backgroundColor: '#0c0c0c',
                     titleColor: '#ff4444',
