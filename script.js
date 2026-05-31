@@ -63,6 +63,28 @@ const TUBE_NETWORK_DATABASE = [
     { name: "Liverpool Street", zone: 1, lat: 51.5178, lon: -0.0820, postcode: "EC2M 7PY" },
     { name: "Victoria", zone: 1, lat: 51.4965, lon: -0.1447, postcode: "SW1V 1JU" },
     { name: "Paddington", zone: 1, lat: 51.5168, lon: -0.1756, postcode: "W2 1HB" },
+    { name: "Bond Street", zone: 1, lat: 51.5142, lon: -0.1494, postcode: "W1S 1SP" },
+    { name: "Tottenham Court Road", zone: 1, lat: 51.5165, lon: -0.1310, postcode: "W1D 1DD" },
+    { name: "Green Park", zone: 1, lat: 51.5069, lon: -0.1428, postcode: "SW1Y 4HJ" },
+    { name: "Piccadilly Circus", zone: 1, lat: 51.5101, lon: -0.1342, postcode: "W1J 9HP" },
+    { name: "Holborn", zone: 1, lat: 51.5174, lon: -0.1207, postcode: "WC2B 6AA" },
+    { name: "Bank", zone: 1, lat: 51.5134, lon: -0.0890, postcode: "EC3V 3LA" },
+    { name: "Leicester Square", zone: 1, lat: 51.5113, lon: -0.1281, postcode: "WC2H 0AP" },
+    { name: "Euston", zone: 1, lat: 51.5281, lon: -0.1336, postcode: "NW1 2DU" },
+    { name: "South Kensington", zone: 1, lat: 51.4941, lon: -0.1738, postcode: "SW7 2NB" },
+    { name: "Charing Cross", zone: 1, lat: 51.5074, lon: -0.1273, postcode: "WC2N 5HF" },
+    { name: "Covent Garden", zone: 1, lat: 51.5129, lon: -0.1243, postcode: "WC2E 9HA" },
+    { name: "Embankment", zone: 1, lat: 51.5071, lon: -0.1223, postcode: "WC2N 6NS" },
+    { name: "Farringdon", zone: 1, lat: 51.5204, lon: -0.1051, postcode: "EC1M 6BY" },
+    { name: "Tower Hill", zone: 1, lat: 51.5098, lon: -0.0766, postcode: "EC3N 4DJ" },
+    { name: "Angel", zone: 1, lat: 51.5326, lon: -0.1058, postcode: "N1 9SF" },
+    { name: "Old Street", zone: 1, lat: 51.5257, lon: -0.0877, postcode: "EC1Y 1BE" },
+    { name: "Vauxhall", zone: 1, lat: 51.4862, lon: -0.1243, postcode: "SW8 1SS" },
+    { name: "Earl's Court", zone: 1, lat: 51.4912, lon: -0.1931, postcode: "SW5 9QA" },
+    { name: "Notting Hill Gate", zone: 1, lat: 51.5091, lon: -0.1961, postcode: "W11 3HT" },
+    { name: "Blackfriars", zone: 1, lat: 51.5116, lon: -0.1031, postcode: "EC4V 4DY" },
+    { name: "Moorgate", zone: 1, lat: 51.5184, lon: -0.0886, postcode: "EC2M 6TX" },
+    { name: "Aldgate", zone: 1, lat: 51.5142, lon: -0.0756, postcode: "EC3N 1AH" },
 
     // ZONE 2 
     { name: "Camden Town", zone: 2, lat: 51.5392, lon: -0.1426, postcode: "NW1 8QL" },
@@ -72,6 +94,15 @@ const TUBE_NETWORK_DATABASE = [
     { name: "Canary Wharf", zone: 2, lat: 51.5048, lon: -0.0195, postcode: "E14 5NY" },
     { name: "Elephant & Castle", zone: 2, lat: 51.4945, lon: -0.1006, postcode: "SE1 6LW" },
     { name: "Whitechapel", zone: 2, lat: 51.5194, lon: -0.0612, postcode: "E1 1BY" },
+    { name: "Clapham Common", zone: 2, lat: 51.4618, lon: -0.1381, postcode: "SW4 7AJ" },
+    { name: "North Greenwich", zone: 2, lat: 51.5003, lon: 0.0038, postcode: "SE10 0PH" },
+    { name: "Bermondsey", zone: 2, lat: 51.4979, lon: -0.0639, postcode: "SE16 4RX" },
+    { name: "Bethnal Green", zone: 2, lat: 51.5273, lon: -0.0549, postcode: "E2 0ET" },
+    { name: "Highbury & Islington", zone: 2, lat: 51.5463, lon: -0.1028, postcode: "N1 1SB" },
+    { name: "Mile End", zone: 2, lat: 51.5253, lon: -0.0335, postcode: "E3 4DH" },
+    { name: "Shepherd's Bush", zone: 2, lat: 51.5044, lon: -0.2184, postcode: "W12 8ND" },
+    { name: "Stockwell", zone: 2, lat: 51.4722, lon: -0.1230, postcode: "SW9 9AE" },
+    { name: "Archway", zone: 2, lat: 51.5654, lon: -0.1348, postcode: "N19 5RQ" },
 
     // ZONE 3 
     { name: "Stratford", zone: 3, lat: 51.5417, lon: -0.0031, postcode: "E15 1AZ" },
@@ -81,6 +112,14 @@ const TUBE_NETWORK_DATABASE = [
     { name: "Tooting Broadway", zone: 3, lat: 51.4275, lon: -0.1681, postcode: "SW17 0SU" },
     { name: "Canning Town", zone: 3, lat: 51.5138, lon: 0.0081, postcode: "E16 1DQ" },
     { name: "Greenwich", zone: 3, lat: 51.4781, lon: -0.0148, postcode: "SE10 8JQ" },
+    { name: "Balham", zone: 3, lat: 51.4431, lon: -0.1527, postcode: "SW12 9SG" },
+    { name: "East Ham", zone: 3, lat: 51.5391, lon: 0.0518, postcode: "E6 2JA" },
+    { name: "Seven Sisters", zone: 3, lat: 51.5834, lon: -0.0726, postcode: "N15 4HA" },
+    { name: "Walthamstow Central", zone: 3, lat: 51.5829, lon: -0.0210, postcode: "E17 3LT" },
+    { name: "Acton Town", zone: 3, lat: 51.5030, lon: -0.2803, postcode: "W3 8HN" },
+    { name: "Golders Green", zone: 3, lat: 51.5724, lon: -0.1993, postcode: "NW11 7RN" },
+    { name: "Leyton", zone: 3, lat: 51.5568, lon: -0.0085, postcode: "E15 2DA" },
+    { name: "West Ham", zone: 3, lat: 51.5283, lon: 0.0053, postcode: "E15 3BN" },
 
     // ZONE 4 
     { name: "Wembley Park", zone: 4, lat: 51.5632, lon: -0.2797, postcode: "HA9 9AA" },
@@ -89,14 +128,20 @@ const TUBE_NETWORK_DATABASE = [
     { name: "Morden", zone: 4, lat: 51.4023, lon: -0.1941, postcode: "SM4 5AZ" },
     { name: "Golders Green", zone: 4, lat: 51.5724, lon: -0.1993, postcode: "NW11 7RN" },
     { name: "Wood Green", zone: 4, lat: 51.5975, lon: -0.1097, postcode: "N22 8HH" },
+    { name: "Finchley Central", zone: 4, lat: 51.6011, lon: -0.1927, postcode: "N3 2ND" },
+    { name: "Hendon Central", zone: 4, lat: 51.5831, lon: -0.2268, postcode: "NW4 3AS" },
+    { name: "Arnos Grove", zone: 4, lat: 51.6164, lon: -0.1331, postcode: "N11 1AN" },
+    { name: "Osterley", zone: 4, lat: 51.4815, lon: -0.3518, postcode: "TW7 4PU" },
 
     // ZONE 5 
     { name: "Harrow-on-the-Hill", zone: 5, lat: 51.5794, lon: -0.3361, postcode: "HA1 1BB" },
-    { name: "Stanmore", zone: 5, lat: 51.6192, lon: -0.1741, postcode: "HA7 4PD" },
-    { name: "Edgware", zone: 5, lat: 51.6136, lon: -0.1731, postcode: "HA8 7AW" },
+    { name: "Stanmore", zone: 5, lat: 51.6192, lon: -0.3023, postcode: "HA7 4PD" },
+    { name: "Edgware", zone: 5, lat: 51.6136, lon: -0.2749, postcode: "HA8 7AW" },
     { name: "Cockfosters", zone: 5, lat: 51.6517, lon: -0.1494, postcode: "EN4 0DZ" },
     { name: "Becontree", zone: 5, lat: 51.5403, lon: 0.1269, postcode: "RM9 2HE" },
     { name: "Twickenham", zone: 5, lat: 51.4506, lon: -0.3375, postcode: "TW1 1BE" },
+    { name: "Rayners Lane", zone: 5, lat: 51.5752, lon: -0.3712, postcode: "HA2 0TL" },
+    { name: "Pinner", zone: 5, lat: 51.5928, lon: -0.3804, postcode: "HA5 5LQ" },
 
     // ZONE 6
     { name: "Heathrow Terminals 2 & 3", zone: 6, lat: 51.4714, lon: -0.4522, postcode: "TW6 1AP" },
@@ -104,7 +149,8 @@ const TUBE_NETWORK_DATABASE = [
     { name: "Uxbridge", zone: 6, lat: 51.5463, lon: -0.4781, postcode: "UB8 1JZ" },
     { name: "Epping", zone: 6, lat: 51.6938, lon: 0.1142, postcode: "CM16 4HW" },
     { name: "Orpington", zone: 6, lat: 51.3732, lon: 0.0903, postcode: "BR6 0JQ" },
-    { name: "Loughton", zone: 6, lat: 51.6414, lon: 0.0419, postcode: "IG10 4RE" }
+    { name: "Loughton", zone: 6, lat: 51.6414, lon: 0.0419, postcode: "IG10 4RE" },
+    { name: "Heathrow Terminal 5", zone: 6, lat: 51.4594, lon: -0.4719, postcode: "TW6 2GA" }
 ];
 
 let currentMarker = null;
@@ -129,7 +175,7 @@ map.on('load', () => {
         type: 'circle',
         source: 'stations-source',
         paint: {
-            'circle-radius': 8,
+            'circle-radius': 5,
             'circle-color': [
                 'match', ['get', 'zone'],
                 1, '#5eead4', // Zone 1
@@ -141,7 +187,7 @@ map.on('load', () => {
                 '#ffffff'
             ],
             'circle-stroke-color': '#000',
-            'circle-stroke-width': 1.5,
+            'circle-stroke-width': 0.5,
             'circle-opacity': 0.9
         }
     });

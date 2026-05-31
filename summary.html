@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Empirical Social Stratum Audit - Dev Prototype v1.0</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+
+    
+        /* CORE SYSTEM RESET & THEME*/
+        body {
+            background-color: #080808;
+            color: #d1d5db;
+            font-family: 'SF Mono', Monaco, 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 40px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .viewport-top {
+            display: grid;
+            grid-template-columns: 310px 1fr; 
+            gap: 32px;
+            width: 100%;
+            margin-bottom: 32px;
+        }
+
+        .telemetry-side {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .console-box {
+            background: #0d0d0d;
+            border: 1px solid #1f2937;
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .toggle-btn {
+            background: #000000;
+            border: 1px solid #ef4444;
+            color: #ef4444;
+            padding: 10px 8px; 
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 10px; 
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px; 
+        }
+
+        .decoder-display-panel {
+            min-height: 125px; 
+            border-bottom: 1px dashed #1f2937;
+            padding-bottom: 18px;
+            margin-bottom: 18px;
+            font-size: 11px;
+        }
+
+        .embedded-legend-section h4 {
+            font-size: 9px; 
+            color: #4b5563;
+            margin: 0 0 12px 0;
+            text-transform: uppercase;
+        }
+
+        .legend-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 10px; 
+        }
+
+        .legend-color {
+            width: 6px; 
+            height: 6px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .legend-range {
+            width: 85px; 
+            font-weight: 700;
+        }
+
+        .legend-label {
+            color: #6b7280;
+        }
+
+        .canvas-side {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .matrix-title {
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #4b5563;
+            text-transform: uppercase;
+        }
+
+        .svg-container {
+            background: #0d0d0d;
+            border: 1px solid #1f2937;
+            padding: 24px;
+            height: 480px; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        circle {
+            transform-origin: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="viewport-top">
+        <div class="telemetry-side">
+            <div class="console-box">
+                <button class="toggle-btn" id="cityToggle">Switch to New York</button>
+                
+                <div class="decoder-display-panel" id="audit-info">
+                    <span style="color: #4b5563; font-style: italic;">// INITIALIZED BLANK.<br>// HOVER ANY DOT ON THE RIGHT TO DECODE METRICS LIVE.</span>
+                </div>
+
+                <div class="embedded-legend-section">
+                    <h4>Fare Burden Matrix Scale</h4>
+                    <div class="legend-list">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ef4444;"></div>
+                            <div class="legend-range" style="color: #ef4444;">&gt; 9.0%</div>
+                            <div class="legend-label">Critical limit</div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #fbbf24;"></div>
+                            <div class="legend-range" style="color: #fbbf24;">6.0% - 9.0%</div>
+                            <div class="legend-label">Severe friction</div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #818cf8;"></div>
+                            <div class="legend-range" style="color: #818cf8;">4.5% - 6.0%</div>
+                            <div class="legend-label">Moderate zone</div>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #5eead4;"></div>
+                            <div class="legend-range" style="color: #5eead4;">&lt; 4.5%</div>
+                            <div class="legend-label">Low insulating</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="canvas-side">
+            <div class="matrix-title" id="matrixLabel">LONDON: STRUCTURAL ZONAL PENALTY</div>
+            <div class="svg-container" id="canvas-holder"></div>
+        </div>
+    </div>
+
+<script>
+
+    // RAW DATA SOURCING
+
+    let londonRawData = [
+        { name: "Waterloo", zone: 1, postcode: "SE1 8SW", income: 49200 },
+        { name: "Oxford Circus", zone: 1, postcode: "W1B 3AG", income: 64200 },
+        { name: "London Bridge", zone: 1, postcode: "SE1 9SP", income: 51500 },
+        { name: "King's Cross St. Pancras", zone: 1, postcode: "N1 9AL", income: 46200 },
+        { name: "Westminster", zone: 1, postcode: "SW1A 2JR", income: 61800 },
+        { name: "Liverpool Street", zone: 1, postcode: "EC2M 7PY", income: 59100 },
+        { name: "Victoria", zone: 1, postcode: "SW1V 1JU", income: 58000 },
+        { name: "Paddington", zone: 1, postcode: "W2 1HB", income: 47500 },
+        { name: "Bond Street", zone: 1, postcode: "W1S 1SP", income: 63000 },
+        { name: "Tottenham Court Road", zone: 1, postcode: "W1D 1DD", income: 49500 },
+        { name: "Green Park", zone: 1, postcode: "SW1Y 4HJ", income: 62500 },
+        { name: "Piccadilly Circus", zone: 1, postcode: "W1J 9HP", income: 60500 },
+        { name: "Holborn", zone: 1, postcode: "WC2B 6AA", income: 48900 },
+        { name: "Bank", zone: 1, postcode: "EC3V 3LA", income: 59500 },
+        { name: "Leicester Square", zone: 1, postcode: "WC2H 0AP", income: 53000 },
+        { name: "Euston", zone: 1, postcode: "NW1 2DU", income: 44200 },
+        { name: "South Kensington", zone: 1, postcode: "SW7 2NB", income: 63800 },
+        { name: "Charing Cross", zone: 1, postcode: "WC2N 5HF", income: 52000 },
+        { name: "Covent Garden", zone: 1, postcode: "WC2E 9HA", income: 54500 },
+        { name: "Embankment", zone: 1, postcode: "WC2N 6NS", income: 53800 },
+        { name: "Farringdon", zone: 1, postcode: "EC1M 6BY", income: 51200 },
+        { name: "Tower Hill", zone: 1, postcode: "EC3N 4DJ", income: 48000 },
+        { name: "Angel", zone: 1, postcode: "N1 9SF", income: 47200 },
+        { name: "Old Street", zone: 1, postcode: "EC1Y 1BE", income: 45800 },
+        { name: "Vauxhall", zone: 1, postcode: "SW8 1SS", income: 43500 },
+        { name: "Earl's Court", zone: 1, postcode: "SW5 9QA", income: 50200 },
+        { name: "Notting Hill Gate", zone: 1, postcode: "W11 3HT", income: 61000 },
+        { name: "Blackfriars", zone: 1, postcode: "EC4V 4DY", income: 52200 },
+        { name: "Moorgate", zone: 2, postcode: "EC2M 6TX", income: 58800 },
+        { name: "Aldgate", zone: 1, postcode: "EC3N 1AH", income: 46800 },
+        { name: "Camden Town", zone: 2, postcode: "NW1 8QL", income: 48500 },
+        { name: "Brixton", zone: 2, postcode: "SW9 8JX", income: 41900 },
+        { name: "Finsbury Park", zone: 2, postcode: "N4 2DH", income: 44100 },
+        { name: "Hammersmith", zone: 2, postcode: "W6 7TE", income: 46900 },
+        { name: "Canary Wharf", zone: 2, postcode: "E14 5NY", income: 54100 },
+        { name: "Elephant & Castle", zone: 2, postcode: "SE1 6LW", income: 36800 },
+        { name: "Whitechapel", zone: 2, postcode: "E1 1BY", income: 34600 },
+        { name: "Clapham Common", zone: 2, postcode: "SW4 7AJ", income: 49100 },
+        { name: "North Greenwich", zone: 2, postcode: "SE10 0PH", income: 45200 },
+        { name: "Bermondsey", zone: 2, postcode: "SE16 4RX", income: 39500 },
+        { name: "Bethnal Green", zone: 2, postcode: "E2 0ET", income: 33100 },
+        { name: "Highbury & Islington", zone: 2, postcode: "N1 1SB", income: 47900 },
+        { name: "Mile End", zone: 2, postcode: "E3 4DH", income: 32500 },
+        { name: "Shepherd's Bush", zone: 2, postcode: "W12 8ND", income: 42100 },
+        { name: "Stockwell", zone: 2, postcode: "SW9 9AE", income: 38900 },
+        { name: "Archway", zone: 2, postcode: "N19 5RQ", income: 41200 },
+        { name: "Stratford", zone: 3, postcode: "E15 1AZ", income: 29400 },
+        { name: "Wimbledon", zone: 3, postcode: "SW19 7NL", income: 40700 },
+        { name: "Highgate", zone: 3, postcode: "N6 5UA", income: 41200 },
+        { name: "Ealing Broadway", zone: 3, postcode: "W5 2NU", income: 34200 },
+        { name: "Tooting Broadway", zone: 3, postcode: "SW17 0SU", income: 35900 },
+        { name: "Canning Town", zone: 3, postcode: "E16 1DQ", income: 34700 },
+        { name: "Greenwich", zone: 3, postcode: "SE10 8JQ", income: 35600 },
+        { name: "Balham", zone: 3, postcode: "SW12 9SG", income: 43100 },
+        { name: "East Ham", zone: 3, postcode: "E6 2JA", income: 28100 },
+        { name: "Seven Sisters", zone: 3, postcode: "N15 4HA", income: 32900 },
+        { name: "Walthamstow Central", zone: 3, postcode: "E17 3LT", income: 31900 },
+        { name: "Acton Town", zone: 3, postcode: "W3 8HN", income: 35200 },
+        { name: "Golders Green (Z3)", zone: 3, postcode: "NW11 7RN", income: 38500 },
+        { name: "Leyton", zone: 3, postcode: "E15 2DA", income: 30200 },
+        { name: "West Ham", zone: 3, postcode: "E15 3BN", income: 28900 },
+        { name: "Wembley Park", zone: 4, postcode: "HA9 9AA", income: 30100 },
+        { name: "Richmond", zone: 4, postcode: "TW9 1EZ", income: 43800 },
+        { name: "Barking", zone: 4, postcode: "IG11 8TU", income: 26100 },
+        { name: "Morden", zone: 4, postcode: "SM4 5AZ", income: 33900 },
+        { name: "Wood Green", zone: 4, postcode: "N22 8HH", income: 31500 },
+        { name: "Finchley Central", zone: 4, postcode: "N3 2ND", income: 39100 },
+        { name: "Hendon Central", zone: 4, postcode: "NW4 3AS", income: 34500 },
+        { name: "Arnos Grove", zone: 4, postcode: "N11 1AN", income: 35800 },
+        { name: "Osterley", zone: 4, postcode: "TW7 4PU", income: 36200 },
+        { name: "Harrow-on-the-Hill", zone: 5, postcode: "HA1 1BB", income: 35100 },
+        { name: "Stanmore", zone: 5, postcode: "HA7 4PD", income: 36100 },
+        { name: "Edgware", zone: 5, postcode: "HA8 7AW", income: 33200 },
+        { name: "Cockfosters", zone: 5, postcode: "EN4 0DZ", income: 29800 },
+        { name: "Becontree", zone: 5, postcode: "RM9 2HE", income: 25400 }
+    ];
+
+    let newYorkRawData = [
+        { name: "Stuyvesant Town - 14 St", borough: "Manhattan", zip: "10009", income: 76500 },
+        { name: "Lower East Side - Delancey St", borough: "Manhattan", zip: "10002", income: 43200 },
+        { name: "Chinatown - Grand St", borough: "Manhattan", zip: "10013", income: 128000 },
+        { name: "Fulton St", borough: "Manhattan", zip: "10038", income: 112000 },
+        { name: "Wall St", borough: "Manhattan", zip: "10005", income: 168000 },
+        { name: "World Trade Center", borough: "Manhattan", zip: "10007", income: 242000 },
+        { name: "Canal St", borough: "Manhattan", zip: "10013", income: 128000 },
+        { name: "Washington Sq - 4 St", borough: "Manhattan", zip: "10012", income: 119500 },
+        { name: "14 St - Union Sq", borough: "Manhattan", zip: "10003", income: 143000 },
+        { name: "34 St - Herald Sq", borough: "Manhattan", zip: "10001", income: 102100 },
+        { name: "Times Sq - 42 St", borough: "Manhattan", zip: "10036", income: 114000 },
+        { name: "Grand Central - 42 St", borough: "Manhattan", zip: "10017", income: 151000 },
+        { name: "59 St - Columbus Circle", borough: "Manhattan", zip: "10023", income: 148200 },
+        { name: "72 St", borough: "Manhattan", zip: "10023", income: 148200 },
+        { name: "86 St", borough: "Manhattan", zip: "10028", income: 159000 },
+        { name: "96 St", borough: "Manhattan", zip: "10029", income: 41800 },
+        { name: "116 St - Columbia Univ", borough: "Manhattan", zip: "10027", income: 64100 },
+        { name: "Harlem - 125 St", borough: "Manhattan", zip: "10027", income: 64100 },
+        { name: "168 St", borough: "Manhattan", zip: "10032", income: 55200 },
+        { name: "Dyckman St", borough: "Manhattan", zip: "10034", income: 54100 },
+        { name: "Inwood - 207 St", borough: "Manhattan", zip: "10034", income: 54100 },
+        { name: "Sutter Av - Rutland Rd", borough: "Brooklyn", zip: "11212", income: 34900 },
+        { name: "Crown Hts - Utica Av", borough: "Brooklyn", zip: "11213", income: 46100 },
+        { name: "Marcy Av", borough: "Brooklyn", zip: "11211", income: 84300 },
+        { name: "Canarsie - Rockaway Pkwy", borough: "Brooklyn", zip: "11236", income: 71200 },
+        { name: "Bay Ridge - 95 St", borough: "Brooklyn", zip: "11209", income: 83100 },
+        { name: "Coney Island - Stillwell Av", borough: "Brooklyn", zip: "11224", income: 39500 },
+        { name: "Brighton Beach", borough: "Brooklyn", zip: "11235", income: 62400 },
+        { name: "Church Av", borough: "Brooklyn", zip: "11226", income: 63100 },
+        { name: "Flatbush Av - Brooklyn College", borough: "Brooklyn", zip: "11210", income: 78500 },
+        { name: "Atlantic Av - Barclays Ctr", borough: "Brooklyn", zip: "11217", income: 121000 },
+        { name: "Bedford - Nostrand Avs", borough: "Brooklyn", zip: "11205", income: 81500 },
+        { name: "Myrtle - Wyckoff Avs", borough: "Brooklyn", zip: "11237", income: 61200 },
+        { name: "Broadway Junction", borough: "Brooklyn", zip: "11207", income: 45100 },
+        { name: "Jay St - MetroTech", borough: "Brooklyn", zip: "11201", income: 154000 },
+        { name: "Borough Hall", borough: "Brooklyn", zip: "11201", income: 154000 },
+        { name: "Greenpoint Av", borough: "Brooklyn", zip: "11222", income: 108000 },
+        { name: "Williamsburg - Bedford Av", borough: "Brooklyn", zip: "11211", income: 84300 },
+        { name: "DUMBO - York St", borough: "Brooklyn", zip: "11201", income: 154000 },
+        { name: "Park Slope - 7 Av", borough: "Brooklyn", zip: "11215", income: 162000 },
+        { name: "Sunset Park - 36 St", borough: "Brooklyn", zip: "11232", income: 56100 },
+        { name: "Bensonhurst - 18 Av", borough: "Brooklyn", zip: "11204", income: 59800 },
+        { name: "Sheepshead Bay", borough: "Brooklyn", zip: "11229", income: 68100 },
+        { name: "East New York - New Lots Av", borough: "Brooklyn", zip: "11208", income: 42100 },
+        { name: "Flushing - Main St", borough: "Queens", zip: "11354", income: 45200 },
+        { name: "Astoria - Ditmars Blvd", borough: "Queens", zip: "11105", income: 79100 },
+        { name: "Jackson Hts - Roosevelt Av", borough: "Queens", zip: "11372", income: 58200 },
+        { name: "Jamaica Center - Parsons", borough: "Queens", zip: "11432", income: 61500 },
+        { name: "Long Island City - Court Sq", borough: "Queens", zip: "11101", income: 118000 },
+        { name: "Queensboro Plaza", borough: "Queens", zip: "11101", income: 118000 },
+        { name: "Forest Hills - 71 Av", borough: "Queens", zip: "11375", income: 91500 },
+        { name: "Kew Gardens - Union Tpk", borough: "Queens", zip: "11415", income: 81200 },
+        { name: "Ozone Park - Lefferts Blvd", borough: "Queens", zip: "11419", income: 74500 },
+        { name: "Howard Beach - JFK Airport", borough: "Queens", zip: "11414", income: 94200 },
+        { name: "Rockaway Park - Beach 116 St", borough: "Queens", zip: "11694", income: 88500 },
+        { name: "Ridgewood - Myrtle Av", borough: "Queens", zip: "11385", income: 76800 },
+        { name: "Sunnyside - 46 St", borough: "Queens", zip: "11104", income: 82500 },
+        { name: "Elmhurst Av", borough: "Queens", zip: "11373", income: 59100 },
+        { name: "Corona - 111 St", borough: "Queens", zip: "11368", income: 55400 },
+        { name: "Steinway St", borough: "Queens", zip: "11103", income: 78900 },
+        { name: "Maspeth - Fresh Pond Rd", borough: "Queens", zip: "11385", income: 76800 },
+        { name: "College Point Blvd", borough: "Queens", zip: "11356", income: 72100 },
+        { name: "Middle Village - Metropolitan", borough: "Queens", zip: "11379", income: 89200 },
+        { name: "St George Ferry Terminal", borough: "Staten Is", zip: "10301", income: 68900 },
+        { name: "Hunts Point Av", borough: "Bronx", zip: "10474", income: 31200 },
+        { name: "3 Av - 149 St", borough: "Bronx", zip: "10455", income: 33100 },
+        { name: "Mott Haven - 138 St", borough: "Bronx", zip: "10454", income: 32400 },
+        { name: "Fordham Rd", borough: "Bronx", zip: "10458", income: 38900 },
+        { name: "Kingsbridge Rd", borough: "Bronx", zip: "10468", income: 41200 },
+        { name: "Pelham Pkwy", borough: "Bronx", zip: "10462", income: 54200 },
+        { name: "Woodlawn", borough: "Bronx", zip: "10470", income: 69100 },
+        { name: "Pelham Bay Park", borough: "Bronx", zip: "10465", income: 79500 },
+        { name: "Highbridge - 161 St", borough: "Bronx", zip: "10451", income: 35600 },
+        { name: "Morris Park", borough: "Bronx", zip: "10461", income: 67100 }
+    ];
+
+    // Static fare values & percentile coefficients
+    const TFL_FARE_MAP = { 1: 1628, 2: 1800, 3: 2120, 4: 2600, 5: 3100 };
+    const NYC_ANNUAL_CARD = 1270;
+    const ONS_PERCENTILE_COEFFICIENTS = [
+        0.42, 0.49, 0.54, 0.58, 0.62, 0.66, 0.70, 0.73, 0.77, 0.80,
+        0.84, 0.88, 0.92, 0.96, 1.00, 1.05, 1.10, 1.15, 1.21, 1.27,
+        1.34, 1.41, 1.49, 1.58, 1.68, 1.80, 1.94, 2.11, 2.32, 2.60
+    ];
+
+    // Layout 
+    const samplesPerColumn = 30;
+    const viewWidth = 1260;
+    const viewHeight = 480;
+    const dotRadius = 3.2; 
+
+   
+    const getColorScale = (burden) => {
+        if (burden > 9.0) return '#ef4444';
+        if (burden > 6.0) return '#fbbf24';
+        if (burden > 4.5) return '#818cf8';
+        return '#5eead4';
+    };
+
+    // DATA PROCESSING CHANNELS 
+
+    // Process London data array
+    function getLondonDataset() {
+        let sorted = [...londonRawData];
+        
+        // Sort by zone-burden index
+        sorted.sort((a, b) => {
+            if (a.zone !== b.zone) return a.zone - b.zone;
+            let bBurden = (TFL_FARE_MAP[b.zone] / (b.income * ONS_PERCENTILE_COEFFICIENTS[0])) * 100;
+            let aBurden = (TFL_FARE_MAP[a.zone] / (a.income * ONS_PERCENTILE_COEFFICIENTS[0])) * 100;
+            return bBurden - aBurden;
+        });
+
+        let data = [];
+        // Loop columns (stations) and rows (income tiers)
+        sorted.forEach((station, col) => {
+            for (let row = 0; row < samplesPerColumn; row++) {
+                let inc = Math.floor(station.income * ONS_PERCENTILE_COEFFICIENTS[row]);
+                let bur = ((TFL_FARE_MAP[station.zone] / inc) * 100).toFixed(1);
+                data.push({
+                    col: col, row: row, name: station.name,
+                    meta: `Zone ${station.zone}, ${station.postcode}`,
+                    income: inc, percentile: 5 + row * 3, burden: bur,
+                    currency: '£', color: getColorScale(parseFloat(bur))
+                });
+            }
+        });
+        return { data: data, totalCols: sorted.length };
+    }
+
+    // Process NYC data array
+    function getNYCDataset() {
+        let sorted = [...newYorkRawData];
+        let nyBoroughOrder = { "Manhattan": 1, "Brooklyn": 2, "Queens": 3, "Staten Is": 4, "Bronx": 5 };
+        
+        // borough hierarchy-burden index
+        sorted.sort((a, b) => {
+            if (nyBoroughOrder[a.borough] !== nyBoroughOrder[b.borough]) {
+                return nyBoroughOrder[a.borough] - nyBoroughOrder[b.borough];
+            }
+            let bBurden = (NYC_ANNUAL_CARD / (b.income * ONS_PERCENTILE_COEFFICIENTS[0])) * 100;
+            let aBurden = (NYC_ANNUAL_CARD / (a.income * ONS_PERCENTILE_COEFFICIENTS[0])) * 100;
+            return bBurden - aBurden;
+        });
+
+        let data = [];
+        
+        sorted.forEach((station, col) => {
+            for (let row = 0; row < samplesPerColumn; row++) {
+                let inc = Math.floor(station.income * ONS_PERCENTILE_COEFFICIENTS[row]);
+                let bur = ((NYC_ANNUAL_CARD / inc) * 100).toFixed(1);
+                data.push({
+                    col: col, row: row, name: station.name,
+                    meta: `${station.borough}, ZIP ${station.zip}`,
+                    income: inc, percentile: 5 + row * 3, burden: bur,
+                    currency: '$', color: getColorScale(parseFloat(bur))
+                });
+            }
+        });
+        return { data: data, totalCols: sorted.length };
+    }
+
+
+    // D3
+  
+    let currentCity = 'london'; 
+
+    function drawGraph() {
+        // city
+        let pack = (currentCity === 'london') ? getLondonDataset() : getNYCDataset();
+
+        
+        d3.select("#canvas-holder").html("");
+
+        // interval spacing 
+        let paddingX = viewWidth / pack.totalCols; 
+        let paddingY = viewHeight / samplesPerColumn;
+
+      
+        let svg = d3.select("#canvas-holder")
+            .append("svg")
+            .attr("viewBox", `0 0 ${viewWidth} ${viewHeight}`)
+            .attr("preserveAspectRatio", "xMidYMid meet");
+
+      
+        svg.selectAll("circle")
+            .data(pack.data)
+            .enter()
+            .append("circle")
+            .attr("cx", d => d.col * paddingX + paddingX / 2)
+            .attr("cy", d => viewHeight - (d.row * paddingY + paddingY / 2))
+            .attr("r", dotRadius)
+            .style("fill", d => d.color)
+            .style("opacity", 0.75)
+            .style("cursor", "pointer")
+
+            // Mouse hover animation behavior setup
+            .on("mouseenter", function(event, d) {
+                svg.selectAll("circle").style("opacity", 0.15); // Fade 
+                d3.select(this).attr("r", dotRadius * 1.8).style("opacity", 1.0); 
+
+                
+                d3.select("#audit-info").html(`
+                    <div style="font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px;">${d.name}</div>
+                    <div style="color: #6b7280; font-size: 10px; margin-bottom: 10px;">${d.meta}</div>
+                    <div style="font-size: 11px;">Stratum Layer: <span style="color: #fbbf24; font-weight: 700;">${d.percentile}th</span></div>
+                    <div style="font-size: 11px;">Income: <span style="color: #fff;">${d.currency}${d.income.toLocaleString()}</span></div>
+                    <div style="margin-top: 8px; padding-top: 6px; border-top: 1px dashed #1f2937; font-size: 11px;">
+                        Burden Index: <span style="color: ${d.color}; font-weight: 700; font-size: 14px;">${d.burden}%</span>
+                    </div>
+                `);
+            })
+            
+            .on("mouseleave", function() {
+                svg.selectAll("circle").style("opacity", 0.75).attr("r", dotRadius);
+            });
+    }
+
+  
+    drawGraph();
+
+   
+
+
+    d3.select("#cityToggle").on("click", function() {
+        
+        if (currentCity === 'london') {
+            currentCity = 'nyc';
+            d3.select(this).text("Switch to London");
+            d3.select("#matrixLabel").text("NEW YORK: BOROUGH SPATIAL AUDIT");
+        } else {
+            currentCity = 'london';
+            d3.select(this).text("Switch to New York");
+            d3.select("#matrixLabel").text("LONDON: STRUCTURAL ZONAL PENALTY");
+        }
+        
+        drawGraph();
+        
+        d3.select("#audit-info").html(`<span style="color: #4b5563; font-style: italic;">// METRICS RESET.<br>// HOVER ANY DOT ON THE RIGHT TO DECODE METRICS LIVE.</span>`);
+    });
+</script>
+</body>
+</html>
