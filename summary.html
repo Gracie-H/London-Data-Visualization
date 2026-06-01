@@ -209,7 +209,7 @@
     <div class="viewport-top">
         
         <div class="telemetry-side">
-            <div class="telemetry-header">Data Summary</div>
+            <div class="telemetry-header">Where You Live Is What You Pay</div>
             <div class="console-box">
                 <button class="toggle-btn" id="cityToggle">Switch to New York</button>
                 
@@ -246,7 +246,7 @@
         </div>
 
         <div class="canvas-side">
-            <div class="matrix-title" id="matrixLabel">LONDON: STRUCTURAL ZONAL PENALTY (ZONE 1 &rarr; ZONE 6)</div>
+            <div class="matrix-title" id="matrixLabel">LONDON: How Zone Boundaries Tax the Periphery (Zone 1 &rarr; Zone 5)</div>
             <div class="svg-container" id="canvas-holder">
                 </div>
         </div>
@@ -544,16 +544,35 @@
                     .attr("r", dotRadius * 1.8)
                     .style("opacity", 1.0);
 
-                d3.select("#audit-info").html(`
-                    <div style="font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px;">${d.name}</div>
-                    <div style="color: #6b7280; font-size: 10px; margin-bottom: 10px;">${d.meta}</div>
-                    <div style="font-size: 11px; margin-bottom: 3px;">Stratum Layer: <span style="color: #fbbf24; font-weight: 700;">${d.percentile}th Percentile</span></div>
-                    <div style="font-size: 11px; margin-bottom: 3px;">Income Segment: <span style="color: #fff;">${d.currency}${d.income.toLocaleString()}</span></div>
-                    <div style="margin-top: 8px; padding-top: 6px; border-top: 1px dashed #1f2937; font-size: 11px;">
-                        Fare Burden Index: <span style="color: ${d.color}; font-weight: 700; font-size: 14px;">${d.burden}%</span>
-                    </div>
-                `);
-            })
+                    let narrativeText = "";
+
+                    if (currentCity === 'london') {
+        narrativeText = `
+            A commuter in the <span style="color: #fbbf24; font-weight: 700;">${d.percentile}th income percentile</span> 
+            living in <strong>${d.name} (${d.meta.split(',')[0]})</strong> is forced to spend 
+            <span style="color: ${d.color}; font-weight: 700; font-size: 13px;">${d.burden}%</span> 
+            of their annual earnings (<span style="color: #fff;">${d.currency}${d.income.toLocaleString()}</span>) 
+            just to travel into the core metropolitan center.
+        `;
+    } else {
+        narrativeText = `
+            A worker in the <span style="color: #fbbf24; font-weight: 700;">${d.percentile}th income percentile</span> 
+            commuting from <strong>${d.name} (${d.meta.split(',')[0]})</strong> spends 
+            <span style="color: ${d.color}; font-weight: 700; font-size: 13px;">${d.burden}%</span> 
+            of their annual earnings (<span style="color: #fff;">${d.currency}${d.income.toLocaleString()}</span>), 
+            safeguarded by New York's universal flat-fare threshold.
+        `;
+    }
+    
+    d3.select("#audit-info").html(`
+        <div style="font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 8px; letter-spacing: 0.5px;">
+            AUDIT IN PROGRESS:
+        </div>
+        <div style="font-size: 11px; line-height: 1.6; color: #d1d5db; text-align: justify;">
+            ${narrativeText}
+        </div>
+    `);
+})
             // Interaction tracking: Mouseleave event cleanup
             .on("mouseleave", function() {
                 svg.selectAll("circle")
@@ -569,12 +588,12 @@
             currentCity = 'nyc';
             activePack = nyDataPack;
             d3.select(this).text("Switch to London");
-            d3.select("#matrixLabel").text("NEW YORK: BOROUGH SPATIAL AUDIT (MANHATTAN &rarr; OUTER BOROUGHS)");
+            d3.select("#matrixLabel").text("NEW YORK: Flat-Fare Transit Safeguarding Spatial Justice (Manhattan &rarr; Outer Boroughs)");
         } else {
             currentCity = 'london';
             activePack = londonDataPack;
             d3.select(this).text("Switch to New York");
-            d3.select("#matrixLabel").text("LONDON: STRUCTURAL ZONAL PENALTY (ZONE 1 &rarr; ZONE 6)");
+            d3.select("#matrixLabel").text("LONDON: How Zone Boundaries Tax the Periphery (Zone 1 &rarr; Zone 6)");
         }
         renderMatrix(activePack);
         d3.select("#audit-info").html(`<span style="color: #4b5563; font-style: italic;"></span>`);
