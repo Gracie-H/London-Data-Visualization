@@ -2,12 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Empirical Social Stratum Audit - Dev Prototype v1.0</title>
+    <title>Empirical Social Stratum Audit - Production Console</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
-
-    
-        /* CORE SYSTEM RESET & THEME*/
+  
         body {
             background-color: #080808;
             color: #d1d5db;
@@ -18,25 +16,50 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            letter-spacing: -0.2px;
         }
 
+        
         .viewport-top {
             display: grid;
             grid-template-columns: 310px 1fr; 
             gap: 32px;
             width: 100%;
             margin-bottom: 32px;
+            align-items: stretch;
         }
 
         .telemetry-side {
             display: flex;
             flex-direction: column;
+            box-sizing: border-box;
+        }
+
+        .telemetry-header {
+            font-size: 10px; 
+            font-weight: 700;
+            color: #ef4444;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 8px; 
+            display: flex;
+            align-items: center;
+        }
+        .telemetry-header::before {
+            content: "";
+            display: inline-block;
+            width: 5px;
+            height: 5px;
+            background: #ef4444;
+            margin-right: 6px;
         }
 
         .console-box {
+            flex-grow: 1;
             background: #0d0d0d;
             border: 1px solid #1f2937;
-            padding: 18px;
+            padding: 18px; 
+            box-sizing: border-box;
             display: flex;
             flex-direction: column;
         }
@@ -50,9 +73,17 @@
             font-family: inherit;
             font-size: 10px; 
             font-weight: 700;
+            transition: all 0.2s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
+            width: 100%;
+            text-align: center;
             margin-bottom: 20px; 
+        }
+        .toggle-btn:hover {
+            background: #ef4444;
+            color: #080808;
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.25);
         }
 
         .decoder-display-panel {
@@ -60,7 +91,14 @@
             border-bottom: 1px dashed #1f2937;
             padding-bottom: 18px;
             margin-bottom: 18px;
+            box-sizing: border-box;
             font-size: 11px;
+        }
+
+        
+        .embedded-legend-section {
+            display: flex;
+            flex-direction: column;
         }
 
         .embedded-legend-section h4 {
@@ -68,18 +106,20 @@
             color: #4b5563;
             margin: 0 0 12px 0;
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .legend-list {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 10px; 
         }
 
         .legend-item {
             display: flex;
-            align-items: center;
+            align-items: center; 
             font-size: 10px; 
+            line-height: 1;
         }
 
         .legend-color {
@@ -87,20 +127,26 @@
             height: 6px;
             border-radius: 50%;
             margin-right: 10px;
+            flex-shrink: 0;
         }
+
 
         .legend-range {
             width: 85px; 
             font-weight: 700;
+            flex-shrink: 0;
         }
 
         .legend-label {
             color: #6b7280;
+            white-space: nowrap; 
         }
+
 
         .canvas-side {
             display: flex;
             flex-direction: column;
+            box-sizing: border-box;
         }
 
         .matrix-title {
@@ -108,12 +154,14 @@
             font-weight: 700;
             margin-bottom: 12px;
             color: #4b5563;
+            letter-spacing: 1.5px;
             text-transform: uppercase;
         }
 
         .svg-container {
             background: #0d0d0d;
             border: 1px solid #1f2937;
+            box-sizing: border-box;
             padding: 24px;
             height: 480px; 
             display: flex;
@@ -123,18 +171,50 @@
 
         circle {
             transform-origin: center;
+            transition: opacity 0.15s ease, r 0.1s ease;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            border-top: 1px solid #1f2937;
+            padding-top: 32px;
+            align-items: start;
+        }
+
+        .grid-col h3 {
+            color: #ef4444;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 0;
+            margin-bottom: 16px;
+            border-bottom: 1px dashed #1f2937;
+            padding-bottom: 8px;
+        }
+
+        .grid-col p {
+            color: #6b7280;
+            font-size: 11px;
+            line-height: 1.8;
+            margin: 0;
+            text-align: justify;
         }
     </style>
 </head>
 <body>
 
     <div class="viewport-top">
+        
         <div class="telemetry-side">
+            <div class="telemetry-header">Data Summary</div>
             <div class="console-box">
                 <button class="toggle-btn" id="cityToggle">Switch to New York</button>
                 
                 <div class="decoder-display-panel" id="audit-info">
-                    <span style="color: #4b5563; font-style: italic;">// INITIALIZED BLANK.<br>// HOVER ANY DOT ON THE RIGHT TO DECODE METRICS LIVE.</span>
+                    <span style="color: #4b5563; font-style: italic;"></span>
                 </div>
 
                 <div class="embedded-legend-section">
@@ -143,22 +223,22 @@
                         <div class="legend-item">
                             <div class="legend-color" style="background: #ef4444;"></div>
                             <div class="legend-range" style="color: #ef4444;">&gt; 9.0%</div>
-                            <div class="legend-label">Critical limit</div>
+                            <div class="legend-label">Critical exploitation limit</div>
                         </div>
                         <div class="legend-item">
                             <div class="legend-color" style="background: #fbbf24;"></div>
                             <div class="legend-range" style="color: #fbbf24;">6.0% - 9.0%</div>
-                            <div class="legend-label">Severe friction</div>
+                            <div class="legend-label">Severe structural friction</div>
                         </div>
                         <div class="legend-item">
                             <div class="legend-color" style="background: #818cf8;"></div>
                             <div class="legend-range" style="color: #818cf8;">4.5% - 6.0%</div>
-                            <div class="legend-label">Moderate zone</div>
+                            <div class="legend-label">Moderate operating zone</div>
                         </div>
                         <div class="legend-item">
                             <div class="legend-color" style="background: #5eead4;"></div>
                             <div class="legend-range" style="color: #5eead4;">&lt; 4.5%</div>
-                            <div class="legend-label">Low insulating</div>
+                            <div class="legend-label">Low insulating layer</div>
                         </div>
                     </div>
                 </div>
@@ -166,14 +246,34 @@
         </div>
 
         <div class="canvas-side">
-            <div class="matrix-title" id="matrixLabel">LONDON: STRUCTURAL ZONAL PENALTY</div>
-            <div class="svg-container" id="canvas-holder"></div>
+            <div class="matrix-title" id="matrixLabel">LONDON: STRUCTURAL ZONAL PENALTY (ZONE 1 &rarr; ZONE 6)</div>
+            <div class="svg-container" id="canvas-holder">
+                </div>
         </div>
+
+    </div>
+
+    <div class="dashboard-grid">
+        
+        <div class="grid-col">
+            <h3>Audit Context</h3>
+            <p>
+                <strong>Horizontal Axis:</strong> Organized by empirical geographical topology spanning seamlessly from core metropolitan transit zones (left) to deep external fringe terminals (right).<br><br>
+                <strong>Vertical Axis:</strong> Generates 30 socioeconomic income tiers calibrated against real localized distribution models (5th percentile at base to 92nd percentile at apex).
+            </p>
+        </div>
+
+        <div class="grid-col">
+            <h3>Diagnostic Manual</h3>
+            <p>
+                As you shift execution paths horizontally to the right, observe the dynamic variance in dot frequencies transitioning toward critical operational risk bounds. <br><br>
+                This visually benchmarks how geographical fixed-fare policies enforce structural real-income suppression on lower wage brackets.
+            </p>
+        </div>
+
     </div>
 
 <script>
-
-    // RAW DATA SOURCING
 
     let londonRawData = [
         { name: "Waterloo", zone: 1, postcode: "SE1 8SW", income: 49200 },
@@ -330,22 +430,21 @@
         { name: "Morris Park", borough: "Bronx", zip: "10461", income: 67100 }
     ];
 
-    // Static fare values & percentile coefficients
+// Fare pricing scales & ONS income percentile coefficients
     const TFL_FARE_MAP = { 1: 1628, 2: 1800, 3: 2120, 4: 2600, 5: 3100 };
     const NYC_ANNUAL_CARD = 1270;
+
     const ONS_PERCENTILE_COEFFICIENTS = [
         0.42, 0.49, 0.54, 0.58, 0.62, 0.66, 0.70, 0.73, 0.77, 0.80,
         0.84, 0.88, 0.92, 0.96, 1.00, 1.05, 1.10, 1.15, 1.21, 1.27,
         1.34, 1.41, 1.49, 1.58, 1.68, 1.80, 1.94, 2.11, 2.32, 2.60
     ];
 
-    // Layout 
     const samplesPerColumn = 30;
     const viewWidth = 1260;
     const viewHeight = 480;
     const dotRadius = 3.2; 
 
-   
     const getColorScale = (burden) => {
         if (burden > 9.0) return '#ef4444';
         if (burden > 6.0) return '#fbbf24';
@@ -353,146 +452,132 @@
         return '#5eead4';
     };
 
-    // DATA PROCESSING CHANNELS 
+    // Calculates base burden percentage for the lowest income tier
+    const getBaseBurden = (income, fare) => {
+        return (fare / Math.floor(income * ONS_PERCENTILE_COEFFICIENTS[0])) * 100;
+    };
 
-    // Process London data array
-    function getLondonDataset() {
-        let sorted = [...londonRawData];
-        
-        // Sort by zone-burden index
-        sorted.sort((a, b) => {
-            if (a.zone !== b.zone) return a.zone - b.zone;
-            let bBurden = (TFL_FARE_MAP[b.zone] / (b.income * ONS_PERCENTILE_COEFFICIENTS[0])) * 100;
-            let aBurden = (TFL_FARE_MAP[a.zone] / (a.income * ONS_PERCENTILE_COEFFICIENTS[0])) * 100;
-            return bBurden - aBurden;
-        });
+    // Sort London data: 1st by Zone tier, 2nd by baseline burden index (descending)
+    londonRawData.sort((a, b) => {
+        if (a.zone !== b.zone) return a.zone - b.zone;
+        return getBaseBurden(b.income, TFL_FARE_MAP[b.zone]) - getBaseBurden(a.income, TFL_FARE_MAP[a.zone]);
+    });
 
-        let data = [];
-        // Loop columns (stations) and rows (income tiers)
-        sorted.forEach((station, col) => {
-            for (let row = 0; row < samplesPerColumn; row++) {
-                let inc = Math.floor(station.income * ONS_PERCENTILE_COEFFICIENTS[row]);
-                let bur = ((TFL_FARE_MAP[station.zone] / inc) * 100).toFixed(1);
-                data.push({
-                    col: col, row: row, name: station.name,
-                    meta: `Zone ${station.zone}, ${station.postcode}`,
-                    income: inc, percentile: 5 + row * 3, burden: bur,
-                    currency: '£', color: getColorScale(parseFloat(bur))
+    const nyBoroughOrder = { "Manhattan": 1, "Brooklyn": 2, "Queens": 3, "Staten Is": 4, "Bronx": 5 };
+    newYorkRawData.sort((a, b) => {
+        if (nyBoroughOrder[a.borough] !== nyBoroughOrder[b.borough]) {
+            return nyBoroughOrder[a.borough] - nyBoroughOrder[b.borough];
+        }
+        return getBaseBurden(b.income, NYC_ANNUAL_CARD) - getBaseBurden(a.income, NYC_ANNUAL_CARD);
+    });
+
+    const buildDataset = (rawData, city) => {
+        const dataset = [];
+        rawData.forEach((station, colIndex) => {
+            for (let rowIndex = 0; rowIndex < samplesPerColumn; rowIndex++) {
+                const segmentIncome = Math.floor(station.income * ONS_PERCENTILE_COEFFICIENTS[rowIndex]);
+                let burden, metaText, currency;
+
+                if (city === 'london') {
+                    const annualFare = TFL_FARE_MAP[station.zone] || 2120;
+                    burden = ((annualFare / segmentIncome) * 100).toFixed(1);
+                    metaText = `Zone ${station.zone}, ${station.postcode}`;
+                    currency = '£';
+                } else {
+                    burden = ((NYC_ANNUAL_CARD / segmentIncome) * 100).toFixed(1);
+                    metaText = `${station.borough}, ZIP ${station.zip}`;
+                    currency = '$';
+                }
+                
+                dataset.push({
+                    col: colIndex,
+                    row: rowIndex,
+                    name: station.name,
+                    meta: metaText,
+                    income: segmentIncome,
+                    percentile: 5 + rowIndex * 3, 
+                    burden: burden,
+                    currency: currency,
+                    color: getColorScale(parseFloat(burden))
                 });
             }
         });
-        return { data: data, totalCols: sorted.length };
-    }
+        return { data: dataset, length: rawData.length };
+    };
 
-    // Process NYC data array
-    function getNYCDataset() {
-        let sorted = [...newYorkRawData];
-        let nyBoroughOrder = { "Manhattan": 1, "Brooklyn": 2, "Queens": 3, "Staten Is": 4, "Bronx": 5 };
-        
-        // borough hierarchy-burden index
-        sorted.sort((a, b) => {
-            if (nyBoroughOrder[a.borough] !== nyBoroughOrder[b.borough]) {
-                return nyBoroughOrder[a.borough] - nyBoroughOrder[b.borough];
-            }
-            let bBurden = (NYC_ANNUAL_CARD / (b.income * ONS_PERCENTILE_COEFFICIENTS[0])) * 100;
-            let aBurden = (NYC_ANNUAL_CARD / (a.income * ONS_PERCENTILE_COEFFICIENTS[0])) * 100;
-            return bBurden - aBurden;
-        });
+    // Pre-bake the target asset packs on initialization
+    const londonDataPack = buildDataset(londonRawData, 'london');
+    const nyDataPack = buildDataset(newYorkRawData, 'nyc');
 
-        let data = [];
-        
-        sorted.forEach((station, col) => {
-            for (let row = 0; row < samplesPerColumn; row++) {
-                let inc = Math.floor(station.income * ONS_PERCENTILE_COEFFICIENTS[row]);
-                let bur = ((NYC_ANNUAL_CARD / inc) * 100).toFixed(1);
-                data.push({
-                    col: col, row: row, name: station.name,
-                    meta: `${station.borough}, ZIP ${station.zip}`,
-                    income: inc, percentile: 5 + row * 3, burden: bur,
-                    currency: '$', color: getColorScale(parseFloat(bur))
-                });
-            }
-        });
-        return { data: data, totalCols: sorted.length };
-    }
+    let currentCity = 'london';
+    let activePack = londonDataPack;
 
-
-    // D3
-  
-    let currentCity = 'london'; 
-
-    function drawGraph() {
-        // city
-        let pack = (currentCity === 'london') ? getLondonDataset() : getNYCDataset();
-
-        
+    function renderMatrix(dataPack) {
         d3.select("#canvas-holder").html("");
 
-        // interval spacing 
-        let paddingX = viewWidth / pack.totalCols; 
-        let paddingY = viewHeight / samplesPerColumn;
+        const matrixData = dataPack.data;
+        const totalColumns = dataPack.length; 
+        
+        const paddingX = viewWidth / totalColumns; 
+        const paddingY = viewHeight / samplesPerColumn;
 
-      
-        let svg = d3.select("#canvas-holder")
+        const svg = d3.select("#canvas-holder")
             .append("svg")
             .attr("viewBox", `0 0 ${viewWidth} ${viewHeight}`)
             .attr("preserveAspectRatio", "xMidYMid meet");
 
-      
+        // Bind data pack array into SVG circle nodes
         svg.selectAll("circle")
-            .data(pack.data)
+            .data(matrixData)
             .enter()
             .append("circle")
             .attr("cx", d => d.col * paddingX + paddingX / 2)
             .attr("cy", d => viewHeight - (d.row * paddingY + paddingY / 2))
             .attr("r", dotRadius)
+            .style("cursor", "pointer")
             .style("fill", d => d.color)
             .style("opacity", 0.75)
-            .style("cursor", "pointer")
-
-            // Mouse hover animation behavior setup
             .on("mouseenter", function(event, d) {
-                svg.selectAll("circle").style("opacity", 0.15); // Fade 
-                d3.select(this).attr("r", dotRadius * 1.8).style("opacity", 1.0); 
-
+                svg.selectAll("circle").style("opacity", 0.15);
                 
+                d3.select(this)
+                    .attr("r", dotRadius * 1.8)
+                    .style("opacity", 1.0);
+
                 d3.select("#audit-info").html(`
                     <div style="font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 4px;">${d.name}</div>
                     <div style="color: #6b7280; font-size: 10px; margin-bottom: 10px;">${d.meta}</div>
-                    <div style="font-size: 11px;">Stratum Layer: <span style="color: #fbbf24; font-weight: 700;">${d.percentile}th</span></div>
-                    <div style="font-size: 11px;">Income: <span style="color: #fff;">${d.currency}${d.income.toLocaleString()}</span></div>
+                    <div style="font-size: 11px; margin-bottom: 3px;">Stratum Layer: <span style="color: #fbbf24; font-weight: 700;">${d.percentile}th Percentile</span></div>
+                    <div style="font-size: 11px; margin-bottom: 3px;">Income Segment: <span style="color: #fff;">${d.currency}${d.income.toLocaleString()}</span></div>
                     <div style="margin-top: 8px; padding-top: 6px; border-top: 1px dashed #1f2937; font-size: 11px;">
-                        Burden Index: <span style="color: ${d.color}; font-weight: 700; font-size: 14px;">${d.burden}%</span>
+                        Fare Burden Index: <span style="color: ${d.color}; font-weight: 700; font-size: 14px;">${d.burden}%</span>
                     </div>
                 `);
             })
-            
+            // Interaction tracking: Mouseleave event cleanup
             .on("mouseleave", function() {
-                svg.selectAll("circle").style("opacity", 0.75).attr("r", dotRadius);
+                svg.selectAll("circle")
+                    .style("opacity", 0.75)
+                    .attr("r", dotRadius);
             });
     }
 
-  
-    drawGraph();
-
-   
-
+    renderMatrix(activePack);
 
     d3.select("#cityToggle").on("click", function() {
-        
         if (currentCity === 'london') {
             currentCity = 'nyc';
+            activePack = nyDataPack;
             d3.select(this).text("Switch to London");
-            d3.select("#matrixLabel").text("NEW YORK: BOROUGH SPATIAL AUDIT");
+            d3.select("#matrixLabel").text("NEW YORK: BOROUGH SPATIAL AUDIT (MANHATTAN &rarr; OUTER BOROUGHS)");
         } else {
             currentCity = 'london';
+            activePack = londonDataPack;
             d3.select(this).text("Switch to New York");
-            d3.select("#matrixLabel").text("LONDON: STRUCTURAL ZONAL PENALTY");
+            d3.select("#matrixLabel").text("LONDON: STRUCTURAL ZONAL PENALTY (ZONE 1 &rarr; ZONE 6)");
         }
-        
-        drawGraph();
-        
-        d3.select("#audit-info").html(`<span style="color: #4b5563; font-style: italic;">// METRICS RESET.<br>// HOVER ANY DOT ON THE RIGHT TO DECODE METRICS LIVE.</span>`);
+        renderMatrix(activePack);
+        d3.select("#audit-info").html(`<span style="color: #4b5563; font-style: italic;"></span>`);
     });
 </script>
 </body>
