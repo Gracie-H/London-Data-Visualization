@@ -48,7 +48,7 @@ The resulting percentages are mapped to a color scale to rank economic pressure:
 ---
 
 ## Project Structure
-text
+```text
 ├── index.html                             # Main entry point with navigation and Mapbox GIS layers
 ├── summary.html                           # D3.js social stratum grid visualization page
 ├── script.js                              # Core logic for Mapbox, geocoding, and HUD dashboard updates
